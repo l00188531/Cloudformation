@@ -52,6 +52,20 @@ Resources:
         - Key: Name
           Value: PrivateSubnet
 
+  # Create an Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: HITT_InternetGateway
+
+  # Attach the Internet Gateway to the VPC
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref HittVPC
+      InternetGatewayId: !Ref InternetGateway
 
         
   
