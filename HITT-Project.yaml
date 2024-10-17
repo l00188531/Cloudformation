@@ -133,13 +133,35 @@ Resources:
       Tags:
         - Key: Name
           Value: PublicSecurityGroup
-
-        
+# Security Group for private Subnet
+  PrivateSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow internal traffic from the public security group
+      VpcId: !Ref HittVPC
+      SecurityGroupIngress:
+        # Allow internal traffic from the public security group
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          SourceSecurityGroupId: !Ref PublicSecurityGroup
+      SecurityGroupEgress:
+        # Allow all outbound traffic
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: PrivateSecurityGroup
   
-  
-  # WebServer:
-  #   Type: AWS::EC2::Instance
-  #   Properties:
-  #     # !Ref EnvironmentName references the parameter above (Test or Prod)
-  #     InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
-  #     ImageId: !Ref ImageId
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      # !Ref EnvironmentName references the parameter above (Test or Prod)
+      InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
+      SecurityGroupIds:
+        - !Ref PublicSecurityGroup
+      SubnetId: !Ref PublicSubnet        
+      ImageId: !Ref ImageId
+      Tags:
+        - Key: Name
+          Value: PublicServer
