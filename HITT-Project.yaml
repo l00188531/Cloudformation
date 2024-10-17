@@ -67,6 +67,31 @@ Resources:
       VpcId: !Ref HittVPC
       InternetGatewayId: !Ref InternetGateway
 
+
+  # Create a Route Table for the Public Subnet
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref HittVPC
+      Tags:
+        - Key: Name
+          Value: HITT_PublicRouteTable
+
+  # Create route for Public Subnet to Allow Internet-Access
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+
+  # Associate public subnet with the Route Table
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
         
   
   
