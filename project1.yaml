@@ -4,3 +4,24 @@ Parameters:
     Type: String
     AllowedValues: [test, prod]
     ConstraintDescription: must be test or prod
+
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+    Description: Latest Amazon Linux 2 AMI from SSM Parameter Store
+
+Mappings:
+  EnvironmentToInstanceType:
+    test:
+      instanceType: t2.nano
+    prod:
+      instanceType: t2.micro
+
+Resources:
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      # !Ref EnvironmentName references the parameter above (Test or Prod)
+      InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
+      ImageId: !Ref ImageId
+
