@@ -1,0 +1,6 @@
+Parameters:
+  EnvironmentName:
+    Description: Environment Name
+    Type: String
+    AllowedValues: [test, prod]
+    ConstraintDescription: must be test or prod
