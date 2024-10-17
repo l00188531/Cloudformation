@@ -4,6 +4,10 @@ Parameters:
     Type: String
     AllowedValues: [test, prod]
     ConstraintDescription: must be test or prod
+  
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair for SSH access.
 
   ImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
@@ -144,7 +148,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 0
           ToPort: 65535
-          SourceSecurityGroupId: !Ref PublicSecurityGroup
+          #SourceSecurityGroupId: !Ref PublicSecurityGroup
       SecurityGroupEgress:
         # Allow all outbound traffic
         - IpProtocol: -1
@@ -152,6 +156,23 @@ Resources:
       Tags:
         - Key: Name
           Value: PrivateSecurityGroup
+
+  # Security Group for Bastion server
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the Bastion host
+      VpcId: !Ref HittVPC
+      SecurityGroupIngress:
+        # Allow traffic on port 22
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          #SourceSecurityGroupId: !Ref BastionSecurityGroup
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: BastionSecurityGroup
   
   WebServer:
     Type: AWS::EC2::Instance
@@ -165,3 +186,31 @@ Resources:
       Tags:
         - Key: Name
           Value: PublicServer
+  
+  # Create Backend server
+  BackendServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      # !Ref EnvironmentName references the parameter above (Test or Prod)
+      InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
+      SecurityGroupIds:
+        - !Ref PrivateSecurityGroup
+      SubnetId: !Ref PrivateSubnet
+      ImageId: !Ref ImageId
+      Tags:
+        - Key: Name
+          Value: PrivateServer
+  
+  # Create Bastion Server
+  BastionServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      # !Ref EnvironmentName references the parameter above (Test or Prod)
+      InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
+      SecurityGroupIds:
+        - !Ref BastionSecurityGroup
+      SubnetId: !Ref PublicSubnet
+      ImageId: !Ref ImageId
+      Tags:
+        - Key: Name
+          Value: BastionServer
