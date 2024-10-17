@@ -18,10 +18,22 @@ Mappings:
       instanceType: t2.micro
 
 Resources:
-  WebServer:
-    Type: AWS::EC2::Instance
+  # Create a VPC
+  MyVPC:
+    Type: AWS::EC2::VPC
     Properties:
-      # !Ref EnvironmentName references the parameter above (Test or Prod)
-      InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
-      ImageId: !Ref ImageId
-
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MySimpleVPC
+        
+  
+  
+  # WebServer:
+  #   Type: AWS::EC2::Instance
+  #   Properties:
+  #     # !Ref EnvironmentName references the parameter above (Test or Prod)
+  #     InstanceType: !FindInMap [EnvironmentToInstanceType, !Ref 'EnvironmentName', instanceType]
+  #     ImageId: !Ref ImageId
