@@ -19,7 +19,7 @@ Mappings:
 
 Resources:
   # Create a VPC
-  MyVPC:
+  HittVPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: "10.0.0.0/16"
@@ -27,7 +27,32 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: MySimpleVPC
+          Value: FridayHITT_VPC
+  
+  # Create a Public Subnet
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref HittVPC
+      CidrBlock: "10.0.1.0/24"
+      AvailabilityZone: !Select [0, !GetAZs ""] # (index 0) from the list returned by !GetAZs 
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+
+  # Create a Private Subnet
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref HittVPC
+      CidrBlock: "10.0.2.0/24"
+      AvailabilityZone: !Select [0, !GetAZs ""] 
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+
+
         
   
   
