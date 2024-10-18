@@ -39,7 +39,8 @@ Resources:
     Properties:
       VpcId: !Ref HittVPC
       CidrBlock: "10.0.1.0/24"
-      AvailabilityZone: !Select [0, !GetAZs ""] # (index 0) from the list returned by !GetAZs 
+      # (index 0) from the list returned by !GetAZs 
+      AvailabilityZone: !Select [0, !GetAZs ""] 
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -107,6 +108,7 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: "0.0.0.0/0"
       GatewayId: !Ref InternetGateway
+      
 
   # Associate public subnet with the Route Table
   PublicSubnetRouteTableAssociation:
@@ -123,6 +125,14 @@ Resources:
       Tags:
         - Key: Name
           Value: HITT_PrivateRouteTable
+  # Add a route for private subnet to go through NAT Gateway
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NATGateway
+    
   
   # Associate Private Subnet with the Private Route Table
   PrivateSubnetRouteTableAssociation:
@@ -167,7 +177,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 0
           ToPort: 65535
-          #SourceSecurityGroupId: !Ref PublicSecurityGroup
+          # allows inbound traffic from the Bastion Security Group:
+          SourceSecurityGroupId: !Ref BastionSecurityGroup
       SecurityGroupEgress:
         # Allow all outbound traffic
         - IpProtocol: -1
@@ -202,10 +213,10 @@ Resources:
         - !Ref PublicSecurityGroup
       SubnetId: !Ref PublicSubnet        
       ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
       Tags:
         - Key: Name
-          Value: PublicServer
-  
+          Value: PublicServer  
   # Create Backend server
   BackendServer:
     Type: AWS::EC2::Instance
@@ -216,6 +227,7 @@ Resources:
         - !Ref PrivateSecurityGroup
       SubnetId: !Ref PrivateSubnet
       ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
       Tags:
         - Key: Name
           Value: PrivateServer
@@ -230,6 +242,7 @@ Resources:
         - !Ref BastionSecurityGroup
       SubnetId: !Ref PublicSubnet
       ImageId: !Ref ImageId
+      KeyName: !Ref KeyName
       Tags:
         - Key: Name
           Value: BastionServer
@@ -255,3 +268,21 @@ Outputs:
       ]
     Description: Copy and run it in your shell
     # ssh -i Downloads/mykeypir.pem ec2
+    # ssh-add mykeypir.pem
+
+# Check If the Agent Is Running to list the keys it holds
+# ssh-add -l
+
+# Ensure Permissions on the Private Key File
+# chmod 400 mykeypair.pem
+
+# Start the SSH Agent
+# If the SSH agent is not running, we need to start it first.
+# For Linux/macOS:
+# eval "$(ssh-agent -s)"
+
+# For Windows (Git Bash):
+# eval $(ssh-agent -s)
+
+# Add private Key
+# ssh-add mykeypair.pem
