@@ -71,6 +71,25 @@ Resources:
       VpcId: !Ref HittVPC
       InternetGatewayId: !Ref InternetGateway
 
+  #--------***************************************---------------------------------------
+
+    # Allocate Elastic IP for NAT Gateway
+  ElasticIPForNAT:
+    Type: AWS::EC2::EIP
+
+  # Create NAT Gateway
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      AllocationId: !GetAtt ElasticIPForNAT.AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: Name
+          Value: HITT_NATGateway
+#-----------------**********************************************************************----------
+
+
+
 
   # Create a Route Table for the Public Subnet
   PublicRouteTable:
@@ -214,3 +233,25 @@ Resources:
       Tags:
         - Key: Name
           Value: BastionServer
+
+Outputs:
+  BastionServerIP:
+    Description: The Bastion Server IP Address
+    Value: !GetAtt BastionServer.PublicIp
+  BackendServerIP:
+    Description: The backend server IP Address
+    Value: !GetAtt BackendServer.PrivateIp
+  ConnectionCMD:
+    Value:
+      !Join [
+        "",
+        [
+          ssh -A -J ec2-user@,
+          !GetAtt BastionServer.PublicIp,
+          " ",
+          ec2-user@,
+          !GetAtt BackendServer.PrivateIp,
+        ],
+      ]
+    Description: Copy and run it in your shell
+    # ssh -i Downloads/mykeypir.pem ec2
