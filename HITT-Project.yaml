@@ -150,7 +150,7 @@ Resources:
       VpcId: !Ref HittVPC
       SecurityGroupIngress:
         # Allow SSH access from bastion server(port 22)
-        - IpProtocol: ssh
+        - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
           SourceSecurityGroupId: !Ref BastionSecurityGroup
@@ -181,7 +181,7 @@ Resources:
           # allows inbound traffic from the Bastion Security Group:
           SourceSecurityGroupId: !Ref PublicSecurityGroup
 
-        - IpProtocol: ssh
+        - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
           SourceSecurityGroupId: !Ref BastionSecurityGroup
