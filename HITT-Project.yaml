@@ -149,15 +149,16 @@ Resources:
       GroupDescription: Allow HTTP & SSH traffic from anywhere
       VpcId: !Ref HittVPC
       SecurityGroupIngress:
-        # Allow SSH access from anywhere(port 22)
-        - IpProtocol: tcp
+        # Allow SSH access from bastion server(port 22)
+        - IpProtocol: ssh
           FromPort: 22
           ToPort: 22
-          CidrIp: 0.0.0.0/0
-        # Allow HTTP access from anywhere (port 80)
+          SourceSecurityGroupId: !Ref BastionSecurityGroup
+          
+        # Allow HTTPS access from anywhere (port 443)
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: 443
+          ToPort: 443
           CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
         # Allow all outbound traffic
@@ -173,12 +174,18 @@ Resources:
       GroupDescription: Allow internal traffic from the public security group
       VpcId: !Ref HittVPC
       SecurityGroupIngress:
-        # Allow internal traffic from the public security group
+        # Allow HTTPS (port 443) traffic from the public security group only
         - IpProtocol: tcp
-          FromPort: 0
-          ToPort: 65535
+          FromPort: 443
+          ToPort: 443
           # allows inbound traffic from the Bastion Security Group:
+          SourceSecurityGroupId: !Ref PublicSecurityGroup
+
+        - IpProtocol: ssh
+          FromPort: 22
+          ToPort: 22
           SourceSecurityGroupId: !Ref BastionSecurityGroup
+
       SecurityGroupEgress:
         # Allow all outbound traffic
         - IpProtocol: -1
